@@ -1,7 +1,7 @@
 local typedefs = require "kong.db.schema.typedefs"
 
 
-local PLUGIN_NAME = "myplugin"
+local PLUGIN_NAME = "zacharyhu"
 
 
 local schema = {
@@ -25,10 +25,10 @@ local schema = {
               type = "integer",
               default = 600,
               required = true,
-              gt = 0, }}, -- adding a constraint for the value
+              gt = 0, }}, -- validator rules (e.g. 'gt') validate a single field
         },
         entity_checks = {
-          -- add some validation rules across fields
+          -- 'entity_checks' rules (e.g. 'at_least_one_of') validate multiple fields
           -- the following is silly because it is always true, since they are both required
           { at_least_one_of = { "request_header", "response_header" }, },
           -- We specify that both header-names cannot be the same
