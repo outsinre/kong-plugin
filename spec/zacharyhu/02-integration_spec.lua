@@ -1,16 +1,18 @@
 local helpers = require "spec.helpers"
 
 
-local PLUGIN_NAME = "myplugin"
+local PLUGIN_NAME = "zacharyhu"
 
 
 for _, strategy in helpers.all_strategies() do if strategy ~= "cassandra" then
   describe(PLUGIN_NAME .. ": (access) [#" .. strategy .. "]", function()
-    local client
+    local proxy_client
+    local kong_yml
 
     lazy_setup(function()
 
-      local bp = helpers.get_db_utils(strategy == "off" and "postgres" or strategy, nil, { PLUGIN_NAME })
+      -- still write test setup to db even if strategy is 'off'
+      local bp, _ = assert(helpers.get_db_utils(strategy == "off" and "postgres" or strategy, nil, { PLUGIN_NAME }))
 
       -- Inject a test route. No need to create a service, there is a default
       -- service which will echo the request.
@@ -24,16 +26,25 @@ for _, strategy in helpers.all_strategies() do if strategy ~= "cassandra" then
         config = {},
       }
 
+      -- can provide custom runtime data
+      kong_yml = helpers.make_yaml_file()
+
       -- start kong
       assert(helpers.start_kong({
         -- set the strategy
         database   = strategy,
+        -- minimal seconds to propagate db CRUD to db replicas
+        db_update_propagation = strategy == "cassandra" and 1 or 0,
         -- use the custom test template to create a local mock server
         nginx_conf = "spec/fixtures/custom_nginx.template",
-        -- make sure our plugin gets loaded
+        -- make sure our plugin gets loaded; may remove "bundled"
         plugins = "bundled," .. PLUGIN_NAME,
         -- write & load declarative config, only if 'strategy=off'
-        declarative_config = strategy == "off" and helpers.make_yaml_file() or nil,
+        declarative_config = strategy == "off" and kong_yml or nil,
+        -- just prove tests run when postgres used as intermediate store for strategy 'off'
+        -- can be omitted
+        pg_host = strategy == "off" and "unknownhost.konghq.com" or nil,
+        cassandra_contact_points = strategy == "off" and "unknownhost.konghq.com" or nil,
       }))
     end)
 
@@ -42,18 +53,18 @@ for _, strategy in helpers.all_strategies() do if strategy ~= "cassandra" then
     end)
 
     before_each(function()
-      client = helpers.proxy_client()
+      proxy_client = helpers.proxy_client()
     end)
 
     after_each(function()
-      if client then client:close() end
+      if proxy_client then proxy_client:close() end
     end)
 
 
 
     describe("request", function()
       it("gets a 'hello-world' header", function()
-        local r = client:get("/request", {
+        local r = proxy_client:get("/request", {
           headers = {
             host = "test1.com"
           }
@@ -71,7 +82,7 @@ for _, strategy in helpers.all_strategies() do if strategy ~= "cassandra" then
 
     describe("response", function()
       it("gets a 'bye-world' header", function()
-        local r = client:get("/request", {
+        local r = proxy_client:get("/request", {
           headers = {
             host = "test1.com"
           }
