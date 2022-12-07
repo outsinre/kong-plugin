@@ -7,6 +7,7 @@ assert(ngx.get_phase() == "timer", "The world is coming to an end!")
 
 
 local kong = kong
+local kong_log = kong.log
 local subsystem = ngx.config.subsystem
 
 
@@ -19,7 +20,7 @@ local ZacharyHuHandler = {
 -- do initialization here, any module level code runs in the 'init_by_lua_block',
 -- before worker processes are forked. So anything you add here will run once,
 -- but be available in all workers.
-kong.log.debug("saying hi from the 'init' handler")
+kong_log.debug("saying hi from the 'init' handler")
 
 
 -- runs in the 'init_worker_by_lua_block'
@@ -27,14 +28,14 @@ kong.log.debug("saying hi from the 'init' handler")
 -- this function does not accept argumenbt 'plugin_conf'
 function ZacharyHuHandler:init_worker()
 
-  kong.log.debug("saying hi from the 'init_worker' handler")
+  kong_log.debug("saying hi from the 'init_worker' handler")
 end
 
 
 if subsystem == "stream" then
   function ZacharyHuHandler:preread(plugin_conf)
 
-    kong.log.debug("saying hi from the 'preread' handler")
+    kong_log.debug("saying hi from the 'preread' handler")
   end
 end
 
@@ -45,7 +46,7 @@ end
 -- configured as a global plugin!
 function ZacharyHuHandler:certificate(plugin_conf)
 
-  kong.log.debug("saying hi from the 'certificate' handler")
+  kong_log.debug("saying hi from the 'certificate' handler")
 end
 
 
@@ -56,7 +57,7 @@ if subsystem ~= "stream" then
   -- configured as a global plugin!
   function ZacharyHuHandler:rewrite(plugin_conf)
 
-    kong.log.debug("saying hi from the 'rewrite' handler")
+    kong_log.debug("saying hi from the 'rewrite' handler")
   end
 end
 
@@ -66,8 +67,8 @@ if subsystem == "http" then
   -- can customize request headers
   function ZacharyHuHandler:access(plugin_conf)
 
-    kong.log.inspect(plugin_conf)
-    kong.service.request.set_header(plugin_conf.request_header, "this is on a request")
+    -- kong_log.inspect(plugin_conf)
+    kong_log.debug("saying hi from the 'access' handler")
   end
 end
 
@@ -75,12 +76,12 @@ end
 --[=[ counterpart of 'access' handler
 function ZacharyHuHandler:ws_handshake(plugin_conf)
 
-  kong.log.debug("saying hi from the 'ws_handshake' handler")
+  kong_log.debug("saying hi from the 'ws_handshake' handler")
 end --]=]
 
 
 if subsystem == "http" then
-  --[=[
+  --
   -- http/1.1 traffic, no HTTP/2 or gRPC
   -- runs in the Kong's "fake response phase"
   -- replaces and conflicts with 'header_filter' and 'body_filter'
@@ -88,14 +89,15 @@ if subsystem == "http" then
   -- can access to the whole response headers and body
   function ZacharyHuHandler:response(plugin_conf)
 
-    kong.log.debug("saying hi from the 'response' handler")
+    kong_log(plugin_conf.some_string, "response")
   end --]=]
 
+  --[=[
   -- runs in the 'header_filter_by_lua_block'
   -- customize response headers
   function ZacharyHuHandler:header_filter(plugin_conf)
 
-    kong.response.set_header(plugin_conf.response_header, "this is on the response")
+    kong_log.debug("saying hi from the 'header_filter' handler")
   end
 
   -- runs in the 'body_filter_by_lua_block'
@@ -103,22 +105,22 @@ if subsystem == "http" then
   -- received chunk sent back to client immediately in a streaming way unless 'buffered_proxying' enabled
   function ZacharyHuHandler:body_filter(plugin_conf)
 
-    kong.log.debug("saying hi from the 'body_filter' handler")
+    kong_log.debug("saying hi from the 'body_filter' handler")
 
-  end
+  end --]=]
 end
 
 
 --[=[ ws traffic
 function ZacharyHuHandler:ws_client_frame(plugin_conf)
 
-  kong.log.debug("saying hi from the 'ws_client_frame' handler")
+  kong_log.debug("saying hi from the 'ws_client_frame' handler")
 end
 
 
 function ZacharyHuHandler:ws_upstream_frame(plugin_conf)
 
-  kong.log.debug("saying hi from the 'ws_upstream_frame' handler")
+  kong_log.debug("saying hi from the 'ws_upstream_frame' handler")
 end --]=]
 
 
@@ -126,14 +128,14 @@ end --]=]
 -- mainly for 'access.log'
 function ZacharyHuHandler:log(plugin_conf)
 
-  kong.log.debug("saying hi from the 'log' handler")
+  kong_log.debug("saying hi from the 'log' handler")
 end
 
 
 --[=[ counterpart of 'log' handler
 function ZacharyHuHandler:ws_close(config)
 
-  kong.log.debug("saying hi from the 'ws_close' handler")
+  kong_log.debug("saying hi from the 'ws_close' handler")
 end --]=]
 
 

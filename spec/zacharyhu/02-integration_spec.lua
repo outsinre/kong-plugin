@@ -4,11 +4,12 @@ local helpers = require "spec.helpers"
 local PLUGIN_NAME = "zacharyhu"
 
 
-for _, strategy in helpers.all_strategies() do if strategy ~= "cassandra" then
+for _, strategy in helpers.all_strategies() do if strategy == "postgres" then
   describe(PLUGIN_NAME .. ": (access) [#" .. strategy .. "]", function()
     local client
 
     lazy_setup(function()
+      helpers.clean_logfile()
 
       local bp = helpers.get_db_utils(strategy == "off" and "postgres" or strategy, nil, { PLUGIN_NAME })
 
@@ -31,7 +32,7 @@ for _, strategy in helpers.all_strategies() do if strategy ~= "cassandra" then
         -- use the custom test template to create a local mock server
         nginx_conf = "spec/fixtures/custom_nginx.template",
         -- make sure our plugin gets loaded
-        plugins = "bundled," .. PLUGIN_NAME,
+        plugins = PLUGIN_NAME,
         -- write & load declarative config, only if 'strategy=off'
         declarative_config = strategy == "off" and helpers.make_yaml_file() or nil,
       }))
@@ -41,47 +42,19 @@ for _, strategy in helpers.all_strategies() do if strategy ~= "cassandra" then
       helpers.stop_kong(nil, true)
     end)
 
-    before_each(function()
-      client = helpers.proxy_client()
-    end)
-
-    after_each(function()
-      if client then client:close() end
-    end)
-
-
-
-    describe("request", function()
+    describe("print log", function()
       it("gets a 'hello-world' header", function()
-        local r = client:get("/request", {
-          headers = {
-            host = "test1.com"
-          }
-        })
-        -- validate that the request succeeded, response status 200
-        assert.response(r).has.status(200)
-        -- now check the request (as echoed by mockbin) to have the header
-        local header_value = assert.request(r).has.header("hello-world")
-        -- validate the value of that header
-        assert.equal("this is on a request", header_value)
-      end)
-    end)
-
-
-
-    describe("response", function()
-      it("gets a 'bye-world' header", function()
-        local r = client:get("/request", {
-          headers = {
-            host = "test1.com"
-          }
-        })
-        -- validate that the request succeeded, response status 200
-        assert.response(r).has.status(200)
-        -- now check the response to have the header
-        local header_value = assert.response(r).has.header("bye-world")
-        -- validate the value of that header
-        assert.equal("this is on the response", header_value)
+        for _ = 1, 500 do
+          client = helpers.proxy_client()
+          local r = client:get("/request", {
+            headers = {
+              host = "test1.com"
+            }
+          })
+          assert.response(r).has.status(200)
+          assert.logfile().has.line([[Hello World: response]], true)
+          client:close()
+        end
       end)
     end)
 
