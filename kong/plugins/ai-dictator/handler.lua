@@ -13,7 +13,7 @@ o1-mini
 deepseek-r1
 
 curl -v 'https://hackathonchina2025.services.ai.azure.com/models/chat/completions' \
--H "api-key: 5VoC5nUaLiGuVpVmHuoBcoLGyQ6ezgsbyqRqXtSqw3yPDKkk7R7OJQQJ99BCACi0881XJ3w3AAAAACOGKfkY" \
+-H "api-key: dunno" \
 -H "content-type: application/json" \
 -d '{"model":"gpt-4o", "messages":[{"role": "user", "content": "Could you tell me if the word foolish is elegant in public place? Please answer with Yes or NO"}],"stream":false}' \
 
@@ -41,7 +41,7 @@ local EMPTY_T = pl_tablex.readonly({})
 
 
 local MODEL_NAME = "gpt-4o"
-local API_KEY = "5VoC5nUaLiGuVpVmHuoBcoLGyQ6ezgsbyqRqXtSqw3yPDKkk7R7OJQQJ99BCACi0881XJ3w3AAAAACOGKfkY"
+local API_KEY = "dunno"
 
 
 local AIDictatorHandler = {
