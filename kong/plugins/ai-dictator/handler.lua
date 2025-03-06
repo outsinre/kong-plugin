@@ -30,6 +30,9 @@ local http      = require "resty.http"
 
 
 local kong        = kong
+local type        = type
+local next        = next
+local tostring    = tostring
 local json_decode = cjson.decode
 local json_encode = cjson.encode
 local str_lower   = string.lower
@@ -69,23 +72,23 @@ local function get_json_body()
   end
 
   if not body_data or #body_data == 0 then
-    kong.log.warn("request body is not found")
+    kong.log.warn("request body not found, default to empty JSON object")
     return EMPTY_T
   end
 
   local json_body, err = json_decode(body_data)
   if err then
-    return nil, "request body is not valid JSON"
+    return nil, "request body not valid JSON"
   end
 
   -- userdata null, boolean, number, string
   if type(json_body) ~= "table" then
     kong.log.warn("request body is a primitive JSON value, using default key '" .. DEFAULT_BODY_KEY .. "'")
-    return { [DEFAULT_BODY_KEY] = json_body }
+    return { [DEFAULT_BODY_KEY] = tostring(json_body) }
   end
 
   if not next(json_body) then
-    kong.log.warn("request body is empty")
+    kong.log.warn("request body empty JSON object")
   end
 
   return json_body
@@ -173,7 +176,7 @@ function AIDictatorHandler:access(plugin_conf)
   end
 
   local rc
-  rc, err = ai_decision(json_body[body_key])
+  rc, err = ai_decision(tostring(json_body[body_key]))
   if not rc then
     return kong.response.exit(500, { message = err })
   end
