@@ -17,9 +17,17 @@ curl -v 'https://hackathonchina2025.services.ai.azure.com/models/chat/completion
 -H "content-type: application/json" \
 -d '{"model":"gpt-4o", "messages":[{"role": "user", "content": "Could you tell me if the word foolish is elegant in public place? Please answer with Yes or NO"}],"stream":false}' \
 
-curl -v localhost:8000/anything -H "content-type: application/json" -d '{ "message": "stupid foolish" }'
-curl -v localhost:8000/anything -H "content-type: application/json" -d '{}'
+curl -v localhost:8000/anything [-H "content-type: application/json"] -d '{ "message": "stupid foolish" }'
+curl -v localhost:8000/anything [-H "content-type: application/json"] -d '{}'
+
+curl -v localhost:8000/anything [-H "content-type: application/json"] -d 'null'
+curl -v localhost:8000/anything [-H "content-type: application/json"] -d 'false'
+curl -v localhost:8000/anything [-H "content-type: application/json"] -d '123'
+curl -v localhost:8000/anything [-H "content-type: application/json"] -d '"shit"'
+
 curl -v localhost:8000/anything
+
+curl -v localhost:8000/anything [-H "content-type: application/json"] -d 'x=123'
 ]=]
 
 
