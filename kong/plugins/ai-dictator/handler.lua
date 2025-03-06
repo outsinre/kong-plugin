@@ -112,7 +112,9 @@ local function ai_decision(message)
 
   local content = "Given the text enclosed in the XML tags <txt> and </txt> as follows. " ..
                   "Could you tell me if there exist negative, inelegant, polictical incorrect, offensive contents? " ..
-                  "Please answer with 'Yes' or 'No'.\n<txt>" .. message .. "</txt>"
+                  "Please answer with 'Yes' or 'No'. When answering the question, please kindly be reminded that " ..
+                  "the text may be presented to pulbic audience, including teenage.\n" ..
+                  "<txt>" .. message .. "</txt>"
   local request_body = {
     model = MODEL_NAME,
     messages = {
@@ -166,7 +168,7 @@ function AIDictatorHandler:access(plugin_conf)
 
   local body_key = kong.request.get_header(plugin_conf.body_key)
   if not body_key then
-    kong.log.warn("body key is undefined, default to '" .. DEFAULT_BODY_KEY .. "'")
+    kong.log.warn("key not found in header '" .. plugin_conf.body_key .. "', default to '" .. DEFAULT_BODY_KEY .. "'")
     body_key = DEFAULT_BODY_KEY
   end
 
