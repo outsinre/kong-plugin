@@ -7,12 +7,13 @@ assert(ngx.get_phase() == "timer", "The world is coming to an end!")
 
 
 local kong = kong
+local kong_meta = require "kong.meta"
 local subsystem = ngx.config.subsystem
 
 
 local ZacharyHuHandler = {
   PRIORITY = 1000, -- set the plugin priority, which determines plugin execution order
-  VERSION = "0.1.0", -- version in X.Y.Z format. Check hybrid-mode compatibility requirements.
+  VERSION = kong_meta.core_version, -- version in X.Y.Z format. Check hybrid-mode compatibility requirements.
 }
 
 
